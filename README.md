@@ -96,6 +96,8 @@ model.repeatCount += 1
 print(model.repeatCount) // 2
 ```
 
+---
+
 ### @JSONBundleWrapper
 
 - Code
