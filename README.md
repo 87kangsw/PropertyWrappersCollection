@@ -6,6 +6,7 @@ Useful PropertyWrappers collection
 
 - [@URLEncoded](#URLEncoded)
 - [@UserDefaultsWrapper](#UserDefaultsWrapper)
+- [@JSONBundleWrapper](#JSONBundleWrapper)
 
 ### @URLEncoded
 
@@ -93,4 +94,80 @@ print(model.repeatCount) // 1
 model.repeatCount += 1
 
 print(model.repeatCount) // 2
+```
+
+### @JSONBundleWrapper
+
+- Code
+
+```Swift
+@propertyWrapper
+struct JSONBundleWrapper<T: Decodable> {
+    let fileName: String
+
+    var wrappedValue: T? {
+        get {
+            guard let url = Bundle.main.url(forResource: fileName, withExtension: "json") else { return nil }
+            do {
+                let data = try Data(contentsOf: url)
+                let result = try JSONDecoder().decode(T.self, from: data)
+                return result
+            } catch {
+                print(error)
+                return nil
+            }
+        }
+    }
+}
+```
+
+- Usage
+
+```json
+// contributions_light.json
+
+{
+  "count": 305,
+  "contributions": [
+    {
+      "date": "2018-11-04",
+      "contribution": 0,
+      "hexColor": "#ebedf0"
+    },
+    {
+      "date": "2018-11-05",
+      "contribution": 0,
+      "hexColor": "#ebedf0"
+    }
+  ]
+}
+```
+
+```swift
+struct Contribution: Codable {
+    let date: String
+    let contribution: Int
+    let hexColor: String
+
+    enum CodingKeys: String, CodingKey {
+        case date
+        case contribution
+        case hexColor
+    }
+}
+
+struct ContributionInfo: Codable {
+    let count: Int
+    let contributions: [Contribution]
+
+    @JSONBundleWrapper(fileName: "contributions_light")
+    static var all: ContributionInfo?
+
+    enum CodingKeys: String, CodingKey {
+        case count
+        case contributions
+    }
+}
+
+print(ContributionInfo.all)
 ```
